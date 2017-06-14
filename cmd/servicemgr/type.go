@@ -5,10 +5,13 @@ type Type uint32
 const (
 	TypeBegin Type = iota
 
-	TypeOpenMic
-	TypeCloseMic
-	TypeMicData
-	TypeScanCode
+	TypeOpenMic    // 1
+	TypeCloseMic   // 2
+	TypeMicData    // 3
+	TypeScanCode   // 4
+	TypeOpenSound  // 5
+	TypeCloseSound // 6
+	TypeSoundData  // 7
 
 	TypeEnd
 )
@@ -35,6 +38,12 @@ func (t Type) String() string {
 		return "TypeCloseMic"
 	case TypeScanCode:
 		return "TypeScanCode"
+	case TypeOpenSound:
+		return "TypeOpenSound"
+	case TypeCloseSound:
+		return "TypeCloseSound"
+	case TypeSoundData:
+		return "TypeSoundData"
 
 	// errors
 	case ErrorInternal:
