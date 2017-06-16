@@ -12,10 +12,11 @@ import (
 )
 
 func init() {
+	test = true
 	log.SetOutput(ioutil.Discard)
 }
 
-func getConnection(s *Server) net.Conn {
+func getConnection(s *Server) *Connection {
 	s.connMu.RLock()
 	conn := s.conn
 	s.connMu.RUnlock()
@@ -84,7 +85,7 @@ func TestMakeConnection(t *testing.T) {
 	defer s.Close()
 
 	if getConnection(s) != nil {
-		t.Fatal("connection should be nil at first")
+		t.Fatalf("connection should be nil at first")
 	}
 
 	serverAddr := s.ln.Addr().String()

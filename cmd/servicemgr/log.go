@@ -7,7 +7,7 @@ import (
 	"syscall"
 )
 
-var debug int = 1
+var debug int = 0
 
 func LogInit() {
 	c := make(chan os.Signal, 1)

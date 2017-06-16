@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	_ "math/rand"
 	"net"
 	"sync"
 	"time"
@@ -30,7 +29,7 @@ type Server struct {
 	ln net.Listener
 
 	connMu sync.RWMutex
-	conn   net.Conn
+	conn   *Connection
 
 	clients sync.Map
 
@@ -90,10 +89,17 @@ func (s *Server) Close() {
 
 func (s *Server) makeConnection() {
 	for {
-		conn, err := s.ln.Accept()
+		c, err := s.ln.Accept()
 		if err != nil {
 			log.Printf("[server]: accept failed with %s\n", err)
 			return
+		}
+
+		conn, err := CreateConnection(c)
+		if err != nil {
+			log.Printf("[server]: create connection failed with %s, close it\n", err)
+			conn.Close()
+			continue
 		}
 
 		s.connMu.Lock()
@@ -102,7 +108,7 @@ func (s *Server) makeConnection() {
 			log.Printf("[server]: a new connection accepted, cleanup previous old one\n")
 			s.conn.Close()
 		}
-		Log("[server]: a new connection establish\n")
+		log.Printf("[server]: a new connection establish\n")
 		s.conn = conn
 		go s.pollConnection()
 		s.connMu.Unlock()
@@ -237,7 +243,7 @@ func (s *Server) pollClient(client *Client) {
 		}
 
 		tlv.T |= uint64(id) << 32
-		err = util.WriteTLV(conn, tlv)
+		err = conn.WriteTLV(tlv)
 		if err != nil {
 			log.Printf("[server]: write %v to connection failed with [%s]\n", tlv, err)
 			returnErr(ErrorSend)

@@ -62,7 +62,7 @@ func WriteTLV(w io.Writer, tlv TLV) error {
 
 	err = binary.Write(w, binary.BigEndian, b.Bytes())
 	if err != nil {
-		log.Printf("[tlv]: write tlv[%v] error: %s\n", b.Bytes(), err)
+		log.Printf("[tlv]: write tlv %v error: %s\n", tlv, err)
 		return err
 	}
 
