@@ -12,8 +12,8 @@ var test = false
 
 const (
 	audioFormat  = 2     // pcm 16 bit
-	audioRate    = 48000 // sample rate
-	audioChannel = 3     // stereo channel
+	audioRate    = 44100 // sample rate
+	audioChannel = 2     // channel count
 )
 
 type Connection struct {
@@ -64,7 +64,7 @@ func (conn *Connection) initAudio() error {
 	}
 	tlv, err = util.ReadTLV(conn)
 	if Type(tlv.T) != TypeOpenSound {
-		log.Printf("[audio]: received a unmatched type[%#x], want %#x", tlv.T, TypeOpenSound)
+		log.Printf("[audio]: received a unmatched type[%#x], want %#x", tlv.T, uint64(TypeOpenSound))
 		return dataInvalidErr
 	}
 
