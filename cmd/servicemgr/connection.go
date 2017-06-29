@@ -64,7 +64,7 @@ func (conn *Connection) initAudio() error {
 	}
 	tlv, err = util.ReadTLV(conn)
 	if Type(tlv.T) != TypeOpenSound {
-		log.Printf("[audio]: received a unmatched type[%#v], want %v", tlv, TypeOpenSound)
+		log.Printf("[audio]: received a unmatched type[%#x], want %#x", tlv.T, uint64(TypeOpenSound))
 		return dataInvalidErr
 	}
 

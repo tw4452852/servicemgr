@@ -28,9 +28,8 @@ type cmd struct {
 type Server struct {
 	ln net.Listener
 
-	connMu    sync.RWMutex
-	conn      *Connection
-	closeWait chan struct{}
+	connMu sync.RWMutex
+	conn   *Connection
 
 	clients sync.Map
 
@@ -40,9 +39,8 @@ type Server struct {
 
 func NewServer(listenAddr string) (*Server, error) {
 	s := &Server{
-		cmds:      make(chan *cmd, 16),
-		exit:      make(chan struct{}),
-		closeWait: make(chan struct{}),
+		cmds: make(chan *cmd, 16),
+		exit: make(chan struct{}),
 	}
 
 	ln, err := net.Listen("tcp", listenAddr)
@@ -97,7 +95,6 @@ func (s *Server) makeConnection() {
 			return
 		}
 
-		log.Println("a new connection accept")
 		conn, err := CreateConnection(c)
 		if err != nil {
 			log.Printf("[server]: create connection failed with %s, close it\n", err)
@@ -110,21 +107,20 @@ func (s *Server) makeConnection() {
 		if s.conn != nil {
 			log.Printf("[server]: a new connection accepted, cleanup previous old one\n")
 			s.conn.Close()
-			<-s.closeWait
 		}
 		log.Printf("[server]: a new connection establish\n")
 		s.conn = conn
-		go s.pollConnection(conn)
+		go s.pollConnection()
 		s.connMu.Unlock()
 	}
 }
 
-func (s *Server) pollConnection(conn *Connection) {
-	defer func() {
-		s.closeWait <- struct{}{}
-	}()
-
+func (s *Server) pollConnection() {
 	for {
+		s.connMu.RLock()
+		conn := s.conn
+		s.connMu.RUnlock()
+
 		tlv, err := util.ReadTLV(conn)
 		if err == util.InternalErr {
 			log.Println("[server]: internal error happend when reading from connection, try again")

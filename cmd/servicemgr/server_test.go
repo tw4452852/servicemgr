@@ -1,15 +1,12 @@
 package main
 
 import (
-	_ "encoding/json"
 	"io"
 	"io/ioutil"
 	"log"
 	"net"
-	_ "os"
 	"reflect"
 	"testing"
-	_ "time"
 
 	"github.com/tw4452852/servicemgr/util"
 )
@@ -372,86 +369,3 @@ func TestInternalError(t *testing.T) {
 		t.Fatalf("expect %v, but got %v", expect, got)
 	}
 }
-
-// func TestMultiConnections(t *testing.T) {
-// 	old := test
-// 	test = false
-// 	defer func() {
-// 		test = old
-// 	}()
-// 	log.SetOutput(os.Stdout)
-
-// 	s, err := NewServer(":0")
-// 	if s == nil || err != nil {
-// 		t.Fatalf("NewServer should return success, but got server[%v], err[%v]", s, err)
-// 	}
-// 	defer s.Close()
-
-// 	openConnection := func() {
-// 		serverAddr := s.ln.Addr().String()
-// 		serverEnd, err := net.Dial("tcp", serverAddr)
-// 		if err != nil {
-// 			t.Fatal(err)
-// 		}
-// 		defer serverEnd.Close()
-
-// 		req, err := json.Marshal(struct {
-// 			Format  int `json:"format"`
-// 			Rate    int `json:"rate"`
-// 			Channel int `json:"channel"`
-// 		}{
-// 			Format:  audioFormat,
-// 			Rate:    audioRate,
-// 			Channel: audioChannel,
-// 		})
-// 		if err != nil {
-// 			t.Fatal(err)
-// 		}
-
-// 		expect := util.TLV{
-// 			T: uint64(TypeOpenSound),
-// 			L: uint64(len(req)),
-// 			V: req,
-// 		}
-// 		got, err := util.ReadTLV(serverEnd)
-// 		if err != nil {
-// 			t.Fatal(err)
-// 		}
-// 		if !reflect.DeepEqual(expect, got) {
-// 			t.Errorf("expect %v but got %v", expect, got)
-// 			return
-// 		}
-
-// 		err = util.WriteTLV(serverEnd, util.TLV{T: uint64(TypeOpenSound)})
-// 		if err != nil {
-// 			t.Fatal(err)
-// 		}
-
-// 		io.Copy(ioutil.Discard, serverEnd)
-// 	}
-
-// 	go openConnection()
-// 	fire := make(chan bool, 10)
-// 	go func() {
-// 		for range fire {
-// 			go openConnection()
-// 		}
-// 	}()
-
-// 	clientEnd, err := createClientEnd(s, -1)
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	defer clientEnd.Close()
-
-// 	for i := 0; i < 1000; i++ {
-// 		err = util.WriteTLV(clientEnd, util.TLV{T: uint64(TypeSoundData), L: 2, V: []byte{0xab, 0xcd}})
-// 		if err != nil {
-// 			t.Fatal(err)
-// 		}
-// 		time.Sleep(30 * time.Millisecond)
-// 		if i%77 == 0 {
-// 			fire <- true
-// 		}
-// 	}
-// }
