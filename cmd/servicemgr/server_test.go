@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/tw4452852/servicemgr/client"
 	"github.com/tw4452852/servicemgr/util"
 )
 
@@ -48,9 +49,9 @@ func createClientEnd(s *Server, id int) (io.ReadWriteCloser, error) {
 		}
 	}()
 
-	client := NewClient(c2)
+	client := client.NewClient(c2)
 	if id >= 0 {
-		client.id = uint32(id)
+		client.SetId(uint32(id))
 	}
 	err = s.AddClient(client)
 	if err != nil {
@@ -122,7 +123,7 @@ func TestAddClient(t *testing.T) {
 		c2.Close()
 	}()
 
-	client := NewClient(c1)
+	client := client.NewClient(c1)
 	err = s.addClient(nil)
 	if err != dataInvalidErr {
 		t.Fatal("AddClient should fail with invalid parameter")

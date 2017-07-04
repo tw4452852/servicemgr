@@ -8,6 +8,8 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 	"os"
+
+	"github.com/tw4452852/servicemgr/client"
 )
 
 const VER = "0.1"
@@ -57,7 +59,7 @@ func main() {
 			log.Printf("[client]: accept error: %s\n", err)
 			continue
 		}
-		err = server.AddClient(NewClient(conn))
+		err = server.AddClient(client.NewClient(conn))
 		if err != nil {
 			log.Printf("[client]: AddClient error: %s\n", err)
 			continue

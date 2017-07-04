@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/tw4452852/servicemgr/client"
 	"github.com/tw4452852/servicemgr/util"
 )
 
@@ -62,7 +63,7 @@ func (s *Server) fakeTest() {
 	for range time.Tick(1 * time.Second) {
 		s.clients.Range(func(k, v interface{}) bool {
 			id := k.(uint32)
-			client := v.(*Client)
+			client := v.(*client.Client)
 			const content = `{"type":"scanRes", "result":"0", "scanData":"xxxxx"}`
 			err := util.WriteTLV(client, util.TLV{T: 4, L: uint64(len(content)), V: []byte(content)})
 			if err != nil {
@@ -81,7 +82,7 @@ func (s *Server) Close() {
 	}
 
 	s.clients.Range(func(_, v interface{}) bool {
-		client := v.(*Client)
+		client := v.(*client.Client)
 		client.Close()
 		return true
 	})
@@ -147,7 +148,7 @@ func (s *Server) pollConnection() {
 		}
 
 		tlv.T = t
-		err = util.WriteTLV(v.(*Client), tlv)
+		err = util.WriteTLV(v.(*client.Client), tlv)
 		if err != nil {
 			log.Printf("[server]: forwarding to client %d failed with [%s]\n", id, err)
 			continue
@@ -173,7 +174,7 @@ func (s *Server) loop() {
 	}
 }
 
-func (s *Server) AddClient(client *Client) error {
+func (s *Server) AddClient(client *client.Client) error {
 	cmd := &cmd{
 		typ:  addClient,
 		err:  make(chan error),
@@ -184,7 +185,7 @@ func (s *Server) AddClient(client *Client) error {
 }
 
 func (s *Server) addClient(data interface{}) error {
-	client, ok := data.(*Client)
+	client, ok := data.(*client.Client)
 	if !ok {
 		return dataInvalidErr
 	}
@@ -197,7 +198,7 @@ func (s *Server) addClient(data interface{}) error {
 	return nil
 }
 
-func (s *Server) pollClient(client *Client) {
+func (s *Server) pollClient(client *client.Client) {
 	id := client.Id()
 	Log("[server]: add a new client %d\n", id)
 

@@ -1,4 +1,4 @@
-package main
+package client
 
 import (
 	"io"
@@ -21,4 +21,8 @@ func NewClient(rwc io.ReadWriteCloser) *Client {
 
 func (c *Client) Id() uint32 {
 	return c.id
+}
+
+func (c *Client) SetId(id uint32) {
+	c.id = id
 }
