@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"reflect"
+	"runtime"
 	"testing"
 
 	"github.com/tw4452852/servicemgr/client"
@@ -100,6 +101,8 @@ func TestMakeConnection(t *testing.T) {
 	for ; oldConn == nil; oldConn = getConnection(s) {
 	}
 
+	prevNumGoRoutine := runtime.NumGoroutine()
+
 	_, err = net.Dial("tcp", serverAddr)
 	if err != nil {
 		t.Fatal(err)
@@ -107,6 +110,11 @@ func TestMakeConnection(t *testing.T) {
 
 	// wait server accept us
 	for newConn := getConnection(s); newConn == oldConn; newConn = getConnection(s) {
+	}
+
+	nowNumGoRoutine := runtime.NumGoroutine()
+	if nowNumGoRoutine != prevNumGoRoutine {
+		t.Errorf("number of goroutines not equal: previous[%d], now[%d]", prevNumGoRoutine, nowNumGoRoutine)
 	}
 }
 
