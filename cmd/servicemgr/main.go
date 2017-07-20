@@ -59,7 +59,7 @@ func main() {
 			log.Printf("[client]: accept error: %s\n", err)
 			continue
 		}
-		err = server.AddClient(client.NewClient(conn))
+		err = server.AddClient(client.NewClient(MakeKeepAlive(conn)))
 		if err != nil {
 			log.Printf("[client]: AddClient error: %s\n", err)
 			continue

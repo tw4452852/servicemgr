@@ -16,6 +16,13 @@ const (
 	audioChannel = 2     // channel count
 )
 
+func MakeKeepAlive(c net.Conn) net.Conn {
+	if tc, ok := c.(*net.TCPConn); ok {
+		tc.SetKeepAlive(true)
+	}
+	return c
+}
+
 type Connection struct {
 	disableAudio bool
 	net.Conn
@@ -24,7 +31,7 @@ type Connection struct {
 func CreateConnection(c net.Conn) (*Connection, error) {
 	conn := &Connection{
 		disableAudio: true,
-		Conn:         c,
+		Conn:         MakeKeepAlive(c),
 	}
 
 	if test {
