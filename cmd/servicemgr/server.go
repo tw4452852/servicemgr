@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"sync"
@@ -121,6 +122,12 @@ func (s *Server) makeConnection() {
 
 func (s *Server) pollConnection(conn *Connection) {
 	defer func() {
+		// inform all clients that connection is gone
+		s.clients.Range(func(k, v interface{}) bool {
+			responseWithType(v.(*client.Client), ErrorConnectionGone)
+			return true
+		})
+
 		s.connPollerDone <- struct{}{}
 	}()
 
@@ -211,18 +218,11 @@ func (s *Server) pollClient(client *client.Client) {
 		s.clients.Delete(id)
 	}()
 
-	returnErr := func(kind Type) {
-		err := util.WriteTLV(client, util.TLV{T: uint64(kind)})
-		if err != nil {
-			log.Printf("[server]: write error type[%#x] failed with %v\n", kind, err)
-		}
-	}
-
 	for {
 		tlv, err := util.ReadTLV(client)
 		if err == util.InternalErr {
 			log.Println("[server]: internal error happend when reading from client, try again")
-			returnErr(ErrorInternal)
+			responseWithType(client, ErrorInternal)
 			continue
 		}
 		if err != nil {
@@ -233,7 +233,7 @@ func (s *Server) pollClient(client *client.Client) {
 
 		if !Type(tlv.T).IsValid() {
 			log.Printf("[server]: type[%d] is invalid, skip forwarding %v to connection\n", tlv.T, tlv)
-			returnErr(ErrorInvalidType)
+			responseWithType(client, ErrorInvalidType)
 			continue
 		}
 
@@ -242,7 +242,7 @@ func (s *Server) pollClient(client *client.Client) {
 		s.connMu.RUnlock()
 		if conn == nil {
 			log.Printf("[server]: connection doesn't establish, skip forwarding %v to connection\n", tlv)
-			returnErr(ErrorConnectionGone)
+			responseWithType(client, ErrorConnectionGone)
 			continue
 		}
 
@@ -250,8 +250,15 @@ func (s *Server) pollClient(client *client.Client) {
 		err = conn.WriteTLV(tlv)
 		if err != nil {
 			log.Printf("[server]: write %v to connection failed with [%s]\n", tlv, err)
-			returnErr(ErrorSend)
+			responseWithType(client, ErrorSend)
 			continue
 		}
+	}
+}
+
+// helper for returning type only
+func responseWithType(w io.Writer, typ Type) {
+	if err := util.WriteTLV(w, util.TLV{T: uint64(typ)}); err != nil {
+		log.Printf("[server]: write type[%#x] failed with %v\n", typ, err)
 	}
 }

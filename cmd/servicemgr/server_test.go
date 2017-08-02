@@ -378,3 +378,32 @@ func TestInternalError(t *testing.T) {
 		t.Fatalf("expect %v, but got %v", expect, got)
 	}
 }
+
+func TestConnectionGone(t *testing.T) {
+	s, err := NewServer(":0")
+	if s == nil || err != nil {
+		t.Fatalf("NewServer should return success, but got server[%v], err[%v]", s, err)
+	}
+	defer s.Close()
+
+	clientEnd, err := createClientEnd(s, -1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer clientEnd.Close()
+
+	serverEnd, err := createServerEnd(s)
+	if err != nil {
+		t.Fatal(err)
+	}
+	serverEnd.Close()
+
+	got, err := util.ReadTLV(clientEnd)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expect := util.TLV{T: uint64(ErrorConnectionGone), V: []byte{}}
+	if !reflect.DeepEqual(got, expect) {
+		t.Fatalf("expect %v, but got %v", expect, got)
+	}
+}
