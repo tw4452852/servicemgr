@@ -12,7 +12,7 @@ import (
 	"github.com/tw4452852/servicemgr/client"
 )
 
-const VER = "0.1"
+var VERSION string
 
 func main() {
 	help := flag.Bool("h", false, "help message")
@@ -28,7 +28,7 @@ func main() {
 	}
 
 	if *version {
-		fmt.Println(VER)
+		fmt.Println(VERSION)
 		os.Exit(0)
 	}
 
